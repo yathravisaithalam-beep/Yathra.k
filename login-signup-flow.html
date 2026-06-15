@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CodTech – Login & Sign-Up Flow</title>
+<style>
+  /* ── Design Tokens (mirrors Figma Color & Text Styles) ── */
+  :root {
+    --primary:      #FF6B00;   /* CodTech brand orange */
+    --primary-dk:   #e05e00;
+    --primary-lt:   #fff3eb;
+    --accent:       #1E1E2F;   /* dark navy */
+    --surface:      #FFFFFF;
+    --bg:           #F4F6FB;
+    --border:       #D9DCE6;
+    --border-focus: #FF6B00;
+    --text-h:       #1E1E2F;
+    --text-b:       #4A4A68;
+    --text-muted:   #9094A6;
+    --error:        #E53935;
+    --success:      #43A047;
+    --radius-sm:    8px;
+    --radius-md:    14px;
+    --radius-lg:    20px;
+    --shadow-card:  0 8px 32px rgba(30,30,47,.10);
+    --shadow-btn:   0 4px 14px rgba(255,107,0,.35);
+    --transition:   .22s ease;
+    --font:         'Segoe UI', system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text-b);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Top Bar ── */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 6px rgba(0,0,0,.06);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--primary);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; color: #fff; font-size: 15px; letter-spacing: -1px;
+  }
+  .logo-text { font-weight: 700; font-size: 16px; color: var(--text-h); }
+  .logo-text span { color: var(--primary); }
+  .nav-links { display: flex; gap: 8px; }
+  .nav-btn {
+    padding: 7px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+  }
+  .nav-btn.outline {
+    background: transparent;
+    border: 1.5px solid var(--primary);
+    color: var(--primary);
+  }
+  .nav-btn.outline:hover { background: var(--primary-lt); }
+  .nav-btn.filled {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: var(--shadow-btn);
+  }
+  .nav-btn.filled:hover { background: var(--primary-dk); }
+
+  /* ── Page Router ── */
+  .page { display: none; }
+  .page.active { display: flex; }
+
+  /* ══════════════════════════════════════
+     HERO / LANDING PAGE
+  ══════════════════════════════════════ */
+  #page-home {
+    flex-direction: column;
+    align-items: center;
+  }
+  .hero {
+    width: 100%;
+    padding: 80px 24px 60px;
+    text-align: center;
+    background: linear-gradient(135deg, #fff7f2 0%, #f4f6fb 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,107,0,.08) 0%, transparent 70%);
+    top: -150px; right: -150px;
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary-lt);
+    color: var(--primary);
+    border: 1px solid rgba(255,107,0,.25);
+    border-radius: 99px;
+    padding: 5px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 800;
+    color: var(--text-h);
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }
+  .hero h1 span { color: var(--primary); }
+  .hero p {
+    font-size: 16px;
+    color: var(--text-b);
+    max-width: 540px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+  .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    padding: 13px 32px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-btn);
+  }
+  .btn-primary:hover { background: var(--primary-dk); transform: translateY(-1px); }
+  .btn-secondary {
+    padding: 13px 32px;
+    background: #fff;
+    color: var(--text-h);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .btn-secondary:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-lt); }
+
+  /* Features strip */
+  .features {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 48px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .feat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 28px 24px;
+    flex: 1 1 220px;
+    min-width: 200px;
+    max-width: 260px;
+    transition: var(--transition);
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+  }
+  .feat-card:hover { border-color: var(--primary); box-shadow: var(--shadow-card); transform: translateY(-3px); }
+  .feat-icon {
+    width: 44px; height: 44px;
+    background: var(--primary-lt);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin-bottom: 14px;
+  }
+  .feat-card h3 { font-size: 15px; color: var(--text-h); font-weight: 700; margin-bottom: 6px; }
+  .feat-card p  { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ══════════════════════════════════════
+     AUTH PAGES (shared layout)
+  ══════════════════════════════════════ */
+  .auth-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 60px);
+    padding: 40px 16px;
+    background: var(--bg);
+  }
+  .auth-split {
+    display: flex;
+    width: 100%;
+    max-width: 920px;
+    min-height: 580px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Left panel (brand) */
+  .auth-brand {
+    flex: 0 0 340px;
+    background: linear-gradient(155deg, #FF6B00 0%, #e05e00 60%, #bf4f00 100%);
+    padding: 48px 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .auth-brand::before {
+    content: '';
+    position: absolute;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.08);
+    bottom: -80px; right: -80px;
+    pointer-events: none;
+  }
+  .auth-brand::after {
+    content: '';
+    position: absolute;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.06);
+    top: -40px; left: -40px;
+    pointer-events: none;
+  }
+  .brand-logo { display: flex; align-items: center; gap: 10px; position: relative; z-index: 1; }
+  .brand-logo-icon {
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,.22);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; color: #fff; font-size: 14px;
+  }
+  .brand-logo span { font-size: 17px; font-weight: 800; }
+  .brand-hero { position: relative; z-index: 1; }
+  .brand-hero h2 { font-size: 26px; font-weight: 800; line-height: 1.3; margin-bottom: 12px; }
+  .brand-hero p  { font-size: 13.5px; opacity: .85; line-height: 1.65; }
+  .brand-trust { position: relative; z-index: 1; }
+  .trust-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; opacity: .9; }
+  .trust-dot {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+  }
+
+  /* Right panel (form) */
+  .auth-form-wrap {
+    flex: 1;
+    background: var(--surface);
+    padding: 44px 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .auth-form-wrap h2 {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-h);
+    margin-bottom: 4px;
+  }
+  .auth-form-wrap .subtitle {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+  }
+
+  /* Tab switcher */
+  .tab-switch {
+    display: flex;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    margin-bottom: 28px;
+    gap: 4px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 9px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .tab-btn.active {
+    background: var(--surface);
+    color: var(--primary);
+    box-shadow: 0 1px 6px rgba(0,0,0,.08);
+  }
+
+  /* Form fields */
+  .form-group { margin-bottom: 18px; position: relative; }
+  .form-group label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-h);
+    margin-bottom: 6px;
+  }
+  .input-wrap { position: relative; }
+  .input-icon {
+    position: absolute;
+    left: 13px; top: 50%; transform: translateY(-50%);
+    font-size: 15px;
+    pointer-events: none;
+    color: var(--text-muted);
+  }
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 11px 14px 11px 38px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--text-h);
+    background: #fff;
+    transition: var(--transition);
+    outline: none;
+  }
+  .form-group input:focus,
+  .form-group select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255,107,0,.1);
+  }
+  .form-group input.error { border-color: var(--error); }
+  .form-group input.success { border-color: var(--success); }
+  .eye-toggle {
+    position: absolute;
+    right: 13px; top: 50%; transform: translateY(-50%);
+    cursor: pointer; font-size: 15px; color: var(--text-muted);
+    user-select: none;
+  }
+  .field-msg {
+    font-size: 11.5px;
+    margin-top: 4px;
+    display: none;
+  }
+  .field-msg.err { color: var(--error); display: block; }
+  .field-msg.ok  { color: var(--success); display: block; }
+
+  /* Inline row */
+  .form-row { display: flex; gap: 14px; }
+  .form-row .form-group { flex: 1; }
+
+  /* Remember / Forgot */
+  .form-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+    font-size: 12.5px;
+  }
+  .checkbox-wrap { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-b); }
+  .checkbox-wrap input[type=checkbox] { accent-color: var(--primary); width: 14px; height: 14px; }
+  .forgot-link { color: var(--primary); text-decoration: none; font-weight: 600; }
+  .forgot-link:hover { text-decoration: underline; }
+
+  /* Submit button */
+  .btn-submit {
+    width: 100%;
+    padding: 13px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-btn);
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-submit:hover { background: var(--primary-dk); transform: translateY(-1px); }
+  .btn-submit:active { transform: translateY(0); }
+  .btn-submit .spinner {
+    display: none;
+    width: 18px; height: 18px;
+    border: 2.5px solid rgba(255,255,255,.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Divider */
+  .divider {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* Social login */
+  .social-btns { display: flex; gap: 10px; margin-bottom: 20px; }
+  .social-btn {
+    flex: 1;
+    padding: 10px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    color: var(--text-h);
+  }
+  .social-btn:hover { border-color: var(--primary); background: var(--primary-lt); }
+
+  /* Switch link */
+  .switch-msg {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .switch-msg a {
+    color: var(--primary);
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .switch-msg a:hover { text-decoration: underline; }
+
+  /* Password strength */
+  .strength-bar { display: flex; gap: 4px; margin-top: 6px; }
+  .s-seg {
+    flex: 1; height: 4px;
+    border-radius: 99px;
+    background: var(--border);
+    transition: background .3s;
+  }
+  .strength-label { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
+
+  /* Success overlay */
+  .success-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(30,30,47,.55);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+  }
+  .success-overlay.show { display: flex; }
+  .success-card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: 48px 40px;
+    text-align: center;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,.18);
+    animation: popIn .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn {
+    from { transform: scale(.7); opacity: 0; }
+    to   { transform: scale(1);  opacity: 1; }
+  }
+  .success-icon {
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    background: #e8f5e9;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 18px;
+  }
+  .success-card h3 { font-size: 22px; color: var(--text-h); font-weight: 800; margin-bottom: 8px; }
+  .success-card p  { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px; }
+  .success-card .btn-primary { width: 100%; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--accent);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 99px;
+    font-size: 13.5px;
+    font-weight: 600;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .auth-brand { display: none; }
+    .auth-form-wrap { padding: 32px 22px; }
+    .auth-split { border-radius: var(--radius-md); }
+    .form-row { flex-direction: column; gap: 0; }
+    .features { padding: 28px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Top Bar ── -->
+<nav class="topbar">
+  <div class="logo">
+    <div class="logo-icon">CT</div>
+    <div class="logo-text"><span>COD</span>TECH</div>
+  </div>
+  <div class="nav-links">
+    <button class="nav-btn outline" onclick="showPage('login')">Log In</button>
+    <button class="nav-btn filled" onclick="showPage('signup')">Sign Up Free</button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════
+     LANDING PAGE
+══════════════════════════════════════ -->
+<div id="page-home" class="page active">
+  <section class="hero">
+    <div class="hero-badge">🎓 Figma Web Development Material</div>
+    <h1>Design. Prototype.<br/><span>Build with Figma.</span></h1>
+    <p>Master UI/UX design with CodTech's placement-ready curriculum. Real projects, real skills, real careers.</p>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="showPage('signup')">Get Started Free →</button>
+      <button class="btn-secondary" onclick="showPage('login')">Already a member? Log In</button>
+    </div>
+  </section>
+  <div class="features">
+    <div class="feat-card">
+      <div class="feat-icon">🎨</div>
+      <h3>UI/UX Design</h3>
+      <p>Learn color theory, typography, grids, and design thinking from scratch.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">⚡</div>
+      <h3>Figma Tools</h3>
+      <p>Master Auto Layout, Components, Variants, Prototyping and Developer Handoff.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">💼</div>
+      <h3>Placement Ready</h3>
+      <p>Build a portfolio, ace UI/UX interviews, and land your first tech role.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🤝</div>
+      <h3>Collaborate</h3>
+      <p>Real-time teamwork, peer reviews and industry-standard workflows.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     LOGIN PAGE
+══════════════════════════════════════ -->
+<div id="page-login" class="page">
+  <div class="auth-wrap">
+    <div class="auth-split">
+      <!-- Brand panel -->
+      <div class="auth-brand">
+        <div class="brand-logo">
+          <div class="brand-logo-icon">CT</div>
+          <span>CodTech</span>
+        </div>
+        <div class="brand-hero">
+          <h2>Welcome back! 👋</h2>
+          <p>Log in to continue your Figma web development journey and unlock your placement potential.</p>
+        </div>
+        <div class="brand-trust">
+          <div class="trust-item"><div class="trust-dot">✓</div> Industry-certified curriculum</div>
+          <div class="trust-item"><div class="trust-dot">✓</div> Google & AWS Partner programs</div>
+          <div class="trust-item"><div class="trust-dot">✓</div> ISO 9001 certified institute</div>
+          <div class="trust-item"><div class="trust-dot">✓</div> AICTE approved courses</div>
+        </div>
+      </div>
+
+      <!-- Form panel -->
+      <div class="auth-form-wrap">
+        <h2>Log In to CodTech</h2>
+        <p class="subtitle">Enter your credentials to access your account</p>
+
+        <form id="loginForm" novalidate>
+          <div class="form-group">
+            <label>Email Address</label>
+            <div class="input-wrap">
+              <span class="input-icon">📧</span>
+              <input type="email" id="l-email" placeholder="you@example.com" />
+            </div>
+            <div class="field-msg" id="l-email-msg"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔒</span>
+              <input type="password" id="l-pass" placeholder="Enter your password" />
+              <span class="eye-toggle" onclick="toggleEye('l-pass','l-eye')" id="l-eye">👁️</span>
+            </div>
+            <div class="field-msg" id="l-pass-msg"></div>
+          </div>
+
+          <div class="form-meta">
+            <label class="checkbox-wrap">
+              <input type="checkbox" /> Remember me
+            </label>
+            <a class="forgot-link" onclick="showToast('Password reset link sent! Check your email.')">Forgot Password?</a>
+          </div>
+
+          <button type="submit" class="btn-submit" id="loginBtn">
+            <span id="loginBtnText">Log In →</span>
+            <div class="spinner" id="loginSpinner"></div>
+          </button>
+        </form>
+
+        <div class="divider">or continue with</div>
+        <div class="social-btns">
+          <button class="social-btn" onclick="showToast('Google sign-in coming soon!')">
+            <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.29-8.16 2.29-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Google
+          </button>
+          <button class="social-btn" onclick="showToast('GitHub sign-in coming soon!')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+            GitHub
+          </button>
+        </div>
+
+        <p class="switch-msg">Don't have an account? <a onclick="showPage('signup')">Sign Up Free</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SIGN-UP PAGE
+══════════════════════════════════════ -->
+<div id="page-signup" class="page">
+  <div class="auth-wrap">
+    <div class="auth-split">
+      <!-- Brand panel -->
+      <div class="auth-brand">
+        <div class="brand-logo">
+          <div class="brand-logo-icon">CT</div>
+          <span>CodTech</span>
+        </div>
+        <div class="brand-hero">
+          <h2>Start Your Design Journey 🚀</h2>
+          <p>Join thousands of students mastering Figma and landing placements at top tech companies.</p>
+        </div>
+        <div class="brand-trust">
+          <div class="trust-item"><div class="trust-dot">✓</div> Free to get started</div>
+          <div class="trust-item"><div class="trust-dot">✓</div> Placement-ready projects</div>
+          <div class="trust-item"><div class="trust-dot">✓</div> Design + code workflow</div>
+          <div class="trust-item"><div class="trust-dot">✓</div> Expert mentor support</div>
+        </div>
+      </div>
+
+      <!-- Form panel -->
+      <div class="auth-form-wrap">
+        <h2>Create your account</h2>
+        <p class="subtitle">Fill in your details to get started — it's free!</p>
+
+        <form id="signupForm" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name</label>
+              <div class="input-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" id="s-fname" placeholder="John" />
+              </div>
+              <div class="field-msg" id="s-fname-msg"></div>
+            </div>
+            <div class="form-group">
+              <label>Last Name</label>
+              <div class="input-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" id="s-lname" placeholder="Doe" />
+              </div>
+              <div class="field-msg" id="s-lname-msg"></div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Email Address</label>
+            <div class="input-wrap">
+              <span class="input-icon">📧</span>
+              <input type="email" id="s-email" placeholder="you@example.com" />
+            </div>
+            <div class="field-msg" id="s-email-msg"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Phone Number</label>
+            <div class="input-wrap">
+              <span class="input-icon">📱</span>
+              <input type="tel" id="s-phone" placeholder="+91 98765 43210" />
+            </div>
+            <div class="field-msg" id="s-phone-msg"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Create Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔒</span>
+              <input type="password" id="s-pass" placeholder="Min. 8 characters" oninput="checkStrength(this.value)" />
+              <span class="eye-toggle" onclick="toggleEye('s-pass','s-eye')" id="s-eye">👁️</span>
+            </div>
+            <div class="strength-bar">
+              <div class="s-seg" id="seg1"></div>
+              <div class="s-seg" id="seg2"></div>
+              <div class="s-seg" id="seg3"></div>
+              <div class="s-seg" id="seg4"></div>
+            </div>
+            <div class="strength-label" id="strength-label">Enter a password</div>
+            <div class="field-msg" id="s-pass-msg"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔑</span>
+              <input type="password" id="s-cpass" placeholder="Re-enter your password" />
+              <span class="eye-toggle" onclick="toggleEye('s-cpass','s-ceye')" id="s-ceye">👁️</span>
+            </div>
+            <div class="field-msg" id="s-cpass-msg"></div>
+          </div>
+
+          <div class="form-meta" style="margin-bottom:20px">
+            <label class="checkbox-wrap" id="terms-wrap">
+              <input type="checkbox" id="s-terms" /> I agree to the <a class="forgot-link" style="margin-left:3px" onclick="showToast('Terms & Conditions page coming soon!')">Terms & Conditions</a>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-submit" id="signupBtn">
+            <span id="signupBtnText">Create Account →</span>
+            <div class="spinner" id="signupSpinner"></div>
+          </button>
+        </form>
+
+        <div class="divider">or sign up with</div>
+        <div class="social-btns">
+          <button class="social-btn" onclick="showToast('Google sign-up coming soon!')">
+            <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.29-8.16 2.29-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Google
+          </button>
+          <button class="social-btn" onclick="showToast('GitHub sign-up coming soon!')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+            GitHub
+          </button>
+        </div>
+
+        <p class="switch-msg">Already have an account? <a onclick="showPage('login')">Log In</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Success Overlay ── -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <div class="success-icon">✅</div>
+    <h3 id="successTitle">Welcome to CodTech!</h3>
+    <p id="successMsg">Your account has been created successfully. Start your Figma design journey today!</p>
+    <button class="btn-primary" onclick="closeSuccess()">Go to Dashboard →</button>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ── Page routing ── */
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    window.scrollTo(0,0);
+  }
+
+  /* ── Eye toggle ── */
+  function toggleEye(inputId, eyeId) {
+    const inp = document.getElementById(inputId);
+    const eye = document.getElementById(eyeId);
+    if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+    else { inp.type = 'password'; eye.textContent = '👁️'; }
+  }
+
+  /* ── Toast ── */
+  function showToast(msg, dur = 3000) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), dur);
+  }
+
+  /* ── Validation helpers ── */
+  function setField(inputId, msgId, type, msg) {
+    const inp = document.getElementById(inputId);
+    const m   = document.getElementById(msgId);
+    inp.classList.remove('error','success');
+    m.classList.remove('err','ok');
+    if (type === 'err') { inp.classList.add('error');   m.classList.add('err'); m.textContent = msg; }
+    if (type === 'ok')  { inp.classList.add('success'); m.classList.add('ok');  m.textContent = msg; }
+    return type === 'ok';
+  }
+
+  /* ── Password strength ── */
+  function checkStrength(val) {
+    const segs   = ['seg1','seg2','seg3','seg4'];
+    const label  = document.getElementById('strength-label');
+    const colors = ['#E53935','#FB8C00','#FDD835','#43A047'];
+    const labels = ['Weak','Fair','Good','Strong'];
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    segs.forEach((id, i) => {
+      document.getElementById(id).style.background = i < score ? colors[score-1] : 'var(--border)';
+    });
+    label.textContent = val.length === 0 ? 'Enter a password' : labels[score-1] || 'Weak';
+    label.style.color = val.length === 0 ? 'var(--text-muted)' : colors[score-1];
+  }
+
+  /* ── Loading state ── */
+  function setLoading(formType, loading) {
+    const btnText = document.getElementById(formType + 'BtnText');
+    const spinner = document.getElementById(formType + 'Spinner');
+    const btn     = document.getElementById(formType + 'Btn');
+    btnText.style.display  = loading ? 'none'   : 'block';
+    spinner.style.display  = loading ? 'block'  : 'none';
+    btn.disabled           = loading;
+  }
+
+  /* ── Login validation ── */
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = document.getElementById('l-email').value.trim();
+    const pass  = document.getElementById('l-pass').value;
+    let valid = true;
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      valid = setField('l-email','l-email-msg','err','Please enter a valid email address.');
+    } else {
+      setField('l-email','l-email-msg','ok','✓ Looks good!');
+    }
+
+    if (pass.length < 6) {
+      valid = false;
+      setField('l-pass','l-pass-msg','err','Password must be at least 6 characters.');
+    } else {
+      setField('l-pass','l-pass-msg','ok','✓ Password accepted!');
+    }
+
+    if (!valid) return;
+
+    setLoading('login', true);
+    setTimeout(() => {
+      setLoading('login', false);
+      document.getElementById('successTitle').textContent = 'Login Successful! 🎉';
+      document.getElementById('successMsg').textContent   = 'Welcome back to CodTech. Your Figma journey continues!';
+      document.getElementById('successOverlay').classList.add('show');
+    }, 1800);
+  });
+
+  /* ── Signup validation ── */
+  document.getElementById('signupForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const fname  = document.getElementById('s-fname').value.trim();
+    const lname  = document.getElementById('s-lname').value.trim();
+    const email  = document.getElementById('s-email').value.trim();
+    const phone  = document.getElementById('s-phone').value.trim();
+    const pass   = document.getElementById('s-pass').value;
+    const cpass  = document.getElementById('s-cpass').value;
+    const terms  = document.getElementById('s-terms').checked;
+    let valid = true;
+
+    if (!fname) { valid = false; setField('s-fname','s-fname-msg','err','First name is required.'); }
+    else setField('s-fname','s-fname-msg','ok','✓');
+
+    if (!lname) { valid = false; setField('s-lname','s-lname-msg','err','Last name is required.'); }
+    else setField('s-lname','s-lname-msg','ok','✓');
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      valid = false; setField('s-email','s-email-msg','err','Please enter a valid email address.');
+    } else setField('s-email','s-email-msg','ok','✓ Valid email!');
+
+    if (!phone || phone.replace(/\D/g,'').length < 10) {
+      valid = false; setField('s-phone','s-phone-msg','err','Please enter a valid phone number.');
+    } else setField('s-phone','s-phone-msg','ok','✓ Valid number!');
+
+    if (pass.length < 8) {
+      valid = false; setField('s-pass','s-pass-msg','err','Password must be at least 8 characters.');
+    } else setField('s-pass','s-pass-msg','ok','✓ Strong password!');
+
+    if (cpass !== pass) {
+      valid = false; setField('s-cpass','s-cpass-msg','err','Passwords do not match.');
+    } else if (cpass) setField('s-cpass','s-cpass-msg','ok','✓ Passwords match!');
+
+    if (!terms) {
+      valid = false;
+      showToast('⚠️ Please accept the Terms & Conditions.', 3000);
+    }
+
+    if (!valid) return;
+
+    setLoading('signup', true);
+    setTimeout(() => {
+      setLoading('signup', false);
+      document.getElementById('successTitle').textContent = 'Account Created! 🎉';
+      document.getElementById('successMsg').textContent   = 'Welcome to CodTech! Your Figma web development journey starts now. Check your email to verify your account.';
+      document.getElementById('successOverlay').classList.add('show');
+    }, 2000);
+  });
+
+  /* ── Close success ── */
+  function closeSuccess() {
+    document.getElementById('successOverlay').classList.remove('show');
+    showPage('home');
+    showToast('🎉 Welcome to CodTech! Redirecting to dashboard...');
+  }
+</script>
+</body>
+</html>
