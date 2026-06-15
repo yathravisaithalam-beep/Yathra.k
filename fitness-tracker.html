@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VITALS — Fitness Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --void: #090B10;
+    --pulse: #00FF88;
+    --flesh: #FF4D6D;
+    --bone: #E8E0D0;
+    --mist: #1A1F2E;
+    --dim: #2C3347;
+    --ghost: rgba(232,224,208,0.08);
+    --glow: 0 0 20px rgba(0,255,136,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--void);
+    color: var(--bone);
+    font-family: 'Space Grotesk', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 8px; height: 8px;
+    background: var(--pulse);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s ease;
+    box-shadow: var(--glow);
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 32px; height: 32px;
+    border: 1px solid rgba(0,255,136,0.4);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.15s ease, width 0.2s, height 0.2s;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 20px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(9,11,16,0.95), transparent);
+    backdrop-filter: blur(2px);
+  }
+
+  .logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: var(--pulse);
+    text-shadow: var(--glow);
+  }
+
+  .logo span {
+    color: var(--flesh);
+    font-size: 10px;
+    letter-spacing: 2px;
+    display: block;
+    font-weight: 400;
+    opacity: 0.7;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--bone);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    transition: opacity 0.2s, color 0.2s;
+  }
+
+  .nav-links a:hover { opacity: 1; color: var(--pulse); }
+
+  .nav-cta {
+    background: transparent;
+    border: 1px solid var(--pulse);
+    color: var(--pulse);
+    padding: 10px 24px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    cursor: none;
+    transition: all 0.2s;
+  }
+
+  .nav-cta:hover {
+    background: var(--pulse);
+    color: var(--void);
+    box-shadow: var(--glow);
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 120px 48px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-text { position: relative; z-index: 2; }
+
+  .hero-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--flesh);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 32px; height: 1px;
+    background: var(--flesh);
+  }
+
+  h1 {
+    font-size: clamp(52px, 6vw, 88px);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -2px;
+    margin-bottom: 32px;
+  }
+
+  h1 .line-pulse {
+    color: var(--pulse);
+    text-shadow: var(--glow);
+    display: block;
+  }
+
+  h1 .line-dim {
+    color: rgba(232,224,208,0.25);
+    display: block;
+    font-weight: 300;
+  }
+
+  .hero-sub {
+    font-size: 16px;
+    line-height: 1.7;
+    opacity: 0.55;
+    max-width: 380px;
+    margin-bottom: 48px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .btn-primary {
+    background: var(--pulse);
+    color: var(--void);
+    border: none;
+    padding: 16px 36px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: none;
+    transition: all 0.2s;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 40px rgba(0,255,136,0.5);
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--bone);
+    border: none;
+    padding: 16px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: none;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .btn-ghost:hover { opacity: 1; }
+
+  /* BODY SCAN VISUAL */
+  .hero-visual {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 560px;
+  }
+
+  .body-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid;
+    animation: ringPulse 3s ease-in-out infinite;
+  }
+
+  .ring-1 { width: 340px; height: 340px; border-color: rgba(0,255,136,0.15); animation-delay: 0s; }
+  .ring-2 { width: 440px; height: 440px; border-color: rgba(0,255,136,0.08); animation-delay: 0.5s; }
+  .ring-3 { width: 540px; height: 540px; border-color: rgba(0,255,136,0.04); animation-delay: 1s; }
+
+  @keyframes ringPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.03); opacity: 0.6; }
+  }
+
+  .body-figure {
+    position: relative;
+    z-index: 2;
+  }
+
+  .body-svg { width: 180px; }
+
+  /* Floating metric cards */
+  .metric-float {
+    position: absolute;
+    background: var(--mist);
+    border: 1px solid var(--ghost);
+    padding: 14px 18px;
+    min-width: 130px;
+    z-index: 3;
+  }
+
+  .metric-float::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--pulse);
+  }
+
+  .metric-float .m-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--pulse);
+    margin-bottom: 4px;
+  }
+
+  .metric-float .m-value {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--bone);
+  }
+
+  .metric-float .m-unit {
+    font-size: 10px;
+    opacity: 0.4;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .metric-float.heart { top: 80px; left: -20px; }
+  .metric-float.steps { bottom: 120px; left: -40px; }
+  .metric-float.cal { top: 60px; right: -30px; }
+  .metric-float.sleep { bottom: 100px; right: -20px; }
+
+  .live-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--flesh);
+    border-radius: 50%;
+    animation: blink 1.2s ease-in-out infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  /* STATS STRIP */
+  .stats-strip {
+    border-top: 1px solid var(--ghost);
+    border-bottom: 1px solid var(--ghost);
+    padding: 32px 48px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+
+  .stat-item {
+    padding: 0 48px;
+    border-right: 1px solid var(--ghost);
+  }
+
+  .stat-item:first-child { padding-left: 0; }
+  .stat-item:last-child { border-right: none; }
+
+  .stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--pulse);
+    line-height: 1;
+  }
+
+  .stat-num sup {
+    font-size: 18px;
+    vertical-align: super;
+  }
+
+  .stat-desc {
+    font-size: 12px;
+    opacity: 0.4;
+    letter-spacing: 1px;
+    margin-top: 8px;
+  }
+
+  /* DASHBOARD SECTION */
+  .dashboard-section {
+    padding: 100px 48px;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 56px;
+  }
+
+  .section-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--flesh);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+
+  .view-all {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--pulse);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0,255,136,0.3);
+    padding-bottom: 2px;
+    transition: border-color 0.2s;
+  }
+
+  .view-all:hover { border-color: var(--pulse); }
+
+  /* Activity Grid */
+  .activity-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 2px;
+  }
+
+  .activity-card {
+    background: var(--mist);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s;
+  }
+
+  .activity-card:hover { background: var(--dim); }
+
+  .activity-card.large { grid-row: span 2; }
+
+  .activity-card .card-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    opacity: 0.4;
+    margin-bottom: 20px;
+  }
+
+  .activity-card .card-value {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+
+  .activity-card .card-unit {
+    font-size: 14px;
+    opacity: 0.4;
+    font-weight: 300;
+    margin-left: 4px;
+  }
+
+  .activity-card .card-sub {
+    font-size: 13px;
+    opacity: 0.4;
+    margin-top: 12px;
+  }
+
+  .activity-card.accent-green .card-value { color: var(--pulse); }
+  .activity-card.accent-red .card-value { color: var(--flesh); }
+
+  /* Progress bar */
+  .prog-bar-wrap {
+    margin-top: 24px;
+  }
+
+  .prog-bar-track {
+    height: 3px;
+    background: var(--ghost);
+    position: relative;
+    margin-bottom: 8px;
+  }
+
+  .prog-bar-fill {
+    height: 100%;
+    background: var(--pulse);
+    position: absolute;
+    top: 0; left: 0;
+    transition: width 1s ease;
+  }
+
+  .prog-bar-fill.red { background: var(--flesh); }
+
+  .prog-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    opacity: 0.35;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* Weekly chart bars */
+  .week-chart {
+    display: flex;
+    gap: 6px;
+    align-items: flex-end;
+    height: 100px;
+    margin-top: 24px;
+  }
+
+  .bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+  }
+
+  .bar {
+    width: 100%;
+    background: var(--ghost);
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    width: 100%;
+    background: var(--pulse);
+    transition: height 0.8s ease;
+  }
+
+  .bar-fill.dim { background: var(--dim); }
+  .bar-fill.active { background: var(--pulse); box-shadow: 0 0 8px rgba(0,255,136,0.4); }
+
+  .bar-day {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    opacity: 0.3;
+    text-transform: uppercase;
+  }
+
+  .bar-day.today { color: var(--pulse); opacity: 1; }
+
+  /* Heartrate line */
+  .hr-line {
+    margin-top: 24px;
+    position: relative;
+    height: 60px;
+  }
+
+  .hr-svg { width: 100%; height: 60px; }
+
+  /* Workout log */
+  .workout-log {
+    margin-top: 80px;
+  }
+
+  .log-row {
+    display: grid;
+    grid-template-columns: 48px 1fr 100px 100px 80px;
+    gap: 24px;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--ghost);
+    transition: background 0.15s;
+  }
+
+  .log-row:hover { padding-left: 8px; }
+
+  .log-row:first-child { border-top: 1px solid var(--ghost); }
+
+  .log-icon {
+    width: 40px; height: 40px;
+    background: var(--ghost);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .log-name { font-weight: 600; font-size: 15px; }
+  .log-date { font-size: 12px; opacity: 0.35; margin-top: 2px; font-family: 'Space Mono', monospace; }
+  .log-val { font-family: 'Space Mono', monospace; font-size: 14px; }
+  .log-val small { opacity: 0.35; font-size: 10px; display: block; }
+
+  .log-badge {
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    text-transform: uppercase;
+  }
+
+  .log-badge.done { color: var(--pulse); border: 1px solid rgba(0,255,136,0.3); }
+  .log-badge.hard { color: var(--flesh); border: 1px solid rgba(255,77,109,0.3); }
+  .log-badge.rest { color: var(--bone); border: 1px solid var(--ghost); opacity: 0.4; }
+
+  /* GOALS SECTION */
+  .goals-section {
+    padding: 0 48px 100px;
+  }
+
+  .goals-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 48px;
+  }
+
+  .goal-card {
+    background: var(--mist);
+    padding: 36px 32px;
+    position: relative;
+  }
+
+  .goal-ring {
+    width: 80px; height: 80px;
+    position: relative;
+    margin-bottom: 24px;
+  }
+
+  .goal-ring svg { transform: rotate(-90deg); }
+
+  .goal-ring .pct {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(90deg);
+    font-family: 'Space Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .goal-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .goal-desc {
+    font-size: 12px;
+    opacity: 0.4;
+    line-height: 1.6;
+  }
+
+  .goal-streak {
+    margin-top: 20px;
+    display: flex;
+    gap: 4px;
+  }
+
+  .streak-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  .streak-dot.filled { background: var(--pulse); }
+  .streak-dot.empty { background: var(--ghost); }
+  .streak-dot.missed { background: var(--flesh); opacity: 0.4; }
+
+  /* CTA SECTION */
+  .cta-section {
+    margin: 0 48px 80px;
+    background: var(--mist);
+    padding: 72px 64px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-section::after {
+    content: 'VITALS';
+    position: absolute;
+    right: -30px; top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Space Mono', monospace;
+    font-size: 120px;
+    font-weight: 700;
+    color: rgba(0,255,136,0.03);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .cta-title {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    line-height: 1.05;
+    margin-bottom: 16px;
+  }
+
+  .cta-sub {
+    font-size: 15px;
+    opacity: 0.45;
+    max-width: 440px;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--ghost);
+    padding: 32px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    opacity: 0.3;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* Scan line overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(9,11,16,0.03) 2px,
+      rgba(9,11,16,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    VITALS
+    <span>BIOMETRIC TRACKER</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#">Dashboard</a></li>
+    <li><a href="#">Workouts</a></li>
+    <li><a href="#">Nutrition</a></li>
+    <li><a href="#">Recovery</a></li>
+  </ul>
+  <button class="nav-cta">SYNC DEVICE</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-text">
+    <div class="hero-eyebrow">
+      <span class="live-dot"></span>
+      Live biometric monitoring
+    </div>
+    <h1>
+      <span class="line-dim">Know your</span>
+      <span class="line-pulse">body.</span>
+      <span style="display:block; color: var(--bone);">Own your</span>
+      <span style="display:block; color: var(--bone);">limits.</span>
+    </h1>
+    <p class="hero-sub">Real-time body intelligence. Track performance down to the millisecond, understand recovery, and push exactly as hard as your data says you can.</p>
+    <div class="hero-actions">
+      <button class="btn-primary">START TRACKING</button>
+      <button class="btn-ghost">View demo →</button>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <!-- Rings -->
+    <div class="body-ring ring-1"></div>
+    <div class="body-ring ring-2"></div>
+    <div class="body-ring ring-3"></div>
+
+    <!-- Body figure SVG -->
+    <div class="body-figure">
+      <svg class="body-svg" viewBox="0 0 100 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Head -->
+        <circle cx="50" cy="22" r="16" stroke="#00FF88" stroke-width="0.8" fill="rgba(0,255,136,0.04)"/>
+        <!-- Neck -->
+        <line x1="45" y1="38" x2="43" y2="52" stroke="#00FF88" stroke-width="0.6" opacity="0.5"/>
+        <line x1="55" y1="38" x2="57" y2="52" stroke="#00FF88" stroke-width="0.6" opacity="0.5"/>
+        <!-- Torso -->
+        <path d="M35 52 Q28 80 30 110 L70 110 Q72 80 65 52 Z" stroke="#00FF88" stroke-width="0.8" fill="rgba(0,255,136,0.03)"/>
+        <!-- Shoulders -->
+        <path d="M35 55 Q20 58 16 72 Q14 84 20 90" stroke="#00FF88" stroke-width="0.8" fill="none" opacity="0.7"/>
+        <path d="M65 55 Q80 58 84 72 Q86 84 80 90" stroke="#00FF88" stroke-width="0.8" fill="none" opacity="0.7"/>
+        <!-- Arms -->
+        <path d="M20 90 Q18 108 24 124" stroke="#00FF88" stroke-width="0.8" fill="none" opacity="0.5"/>
+        <path d="M80 90 Q82 108 76 124" stroke="#00FF88" stroke-width="0.8" fill="none" opacity="0.5"/>
+        <!-- Hands -->
+        <ellipse cx="24" cy="128" rx="5" ry="7" stroke="#00FF88" stroke-width="0.6" fill="none" opacity="0.4"/>
+        <ellipse cx="76" cy="128" rx="5" ry="7" stroke="#00FF88" stroke-width="0.6" fill="none" opacity="0.4"/>
+        <!-- Hips -->
+        <path d="M30 110 Q28 120 32 134 L68 134 Q72 120 70 110" stroke="#00FF88" stroke-width="0.8" fill="rgba(0,255,136,0.02)"/>
+        <!-- Legs -->
+        <path d="M32 134 Q28 160 30 180 Q32 194 36 200" stroke="#00FF88" stroke-width="0.8" fill="none" opacity="0.6"/>
+        <path d="M68 134 Q72 160 70 180 Q68 194 64 200" stroke="#00FF88" stroke-width="0.8" fill="none" opacity="0.6"/>
+        <!-- Feet -->
+        <path d="M36 200 Q30 204 26 206 Q32 208 42 206" stroke="#00FF88" stroke-width="0.6" fill="none" opacity="0.4"/>
+        <path d="M64 200 Q70 204 74 206 Q68 208 58 206" stroke="#00FF88" stroke-width="0.6" fill="none" opacity="0.4"/>
+        <!-- Heart indicator -->
+        <circle cx="48" cy="80" r="4" fill="rgba(255,77,109,0.4)" stroke="#FF4D6D" stroke-width="0.8">
+          <animate attributeName="r" values="4;6;4" dur="1s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;0.5;1" dur="1s" repeatCount="indefinite"/>
+        </circle>
+        <!-- Data points scattered -->
+        <circle cx="50" cy="22" r="2" fill="#00FF88" opacity="0.6"/>
+        <circle cx="48" cy="80" r="1.5" fill="#FF4D6D"/>
+        <circle cx="30" cy="90" r="1" fill="#00FF88" opacity="0.4"/>
+        <circle cx="70" cy="90" r="1" fill="#00FF88" opacity="0.4"/>
+      </svg>
+    </div>
+
+    <!-- Floating metrics -->
+    <div class="metric-float heart">
+      <div class="m-label"><span class="live-dot"></span>Heart Rate</div>
+      <div class="m-value">72<span class="m-unit"> bpm</span></div>
+    </div>
+    <div class="metric-float steps">
+      <div class="m-label">Steps Today</div>
+      <div class="m-value">8,240</div>
+    </div>
+    <div class="metric-float cal">
+      <div class="m-label">Calories</div>
+      <div class="m-value">1,847<span class="m-unit"> kcal</span></div>
+    </div>
+    <div class="metric-float sleep">
+      <div class="m-label">Sleep Score</div>
+      <div class="m-value">84<span class="m-unit">/100</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="stat-item">
+    <div class="stat-num">2.4<sup>M</sup></div>
+    <div class="stat-desc">Data points logged daily</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">98<sup>%</sup></div>
+    <div class="stat-desc">Biometric accuracy rate</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">340<sup>K</sup></div>
+    <div class="stat-desc">Active athletes</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">12<sup>ms</sup></div>
+    <div class="stat-desc">Real-time sync latency</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<section class="dashboard-section">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">Today's Overview</div>
+      <div class="section-title">Your body<br>in numbers</div>
+    </div>
+    <a href="#" class="view-all">FULL REPORT →</a>
+  </div>
+
+  <div class="activity-grid">
+    <!-- Large card: weekly steps -->
+    <div class="activity-card large accent-green">
+      <div class="card-label">Weekly Steps</div>
+      <div class="card-value">48,392<span class="card-unit">steps</span></div>
+      <div class="card-sub">↑ 12% above your weekly average</div>
+      <div class="week-chart">
+        <div class="bar-wrap">
+          <div class="bar"><div class="bar-fill" style="height:65%"></div></div>
+          <div class="bar-day">MON</div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar"><div class="bar-fill" style="height:80%"></div></div>
+          <div class="bar-day">TUE</div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar"><div class="bar-fill dim" style="height:35%"></div></div>
+          <div class="bar-day">WED</div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar"><div class="bar-fill" style="height:90%"></div></div>
+          <div class="bar-day">THU</div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar"><div class="bar-fill" style="height:72%"></div></div>
+          <div class="bar-day">FRI</div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar"><div class="bar-fill dim" style="height:20%"></div></div>
+          <div class="bar-day">SAT</div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar"><div class="bar-fill active" style="height:55%"></div></div>
+          <div class="bar-day today">SUN</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VO2 Max -->
+    <div class="activity-card">
+      <div class="card-label">VO₂ Max</div>
+      <div class="card-value" style="color:var(--bone); font-size:40px">52.4</div>
+      <div class="card-sub">Excellent range</div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar-track">
+          <div class="prog-bar-fill" style="width:76%"></div>
+        </div>
+        <div class="prog-labels"><span>Poor</span><span>Elite</span></div>
+      </div>
+    </div>
+
+    <!-- Calories -->
+    <div class="activity-card accent-red">
+      <div class="card-label">Active Burn</div>
+      <div class="card-value">624<span class="card-unit">kcal</span></div>
+      <div class="card-sub">Target: 700 kcal</div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar-track">
+          <div class="prog-bar-fill red" style="width:89%"></div>
+        </div>
+        <div class="prog-labels"><span>0</span><span>700</span></div>
+      </div>
+    </div>
+
+    <!-- Heart Rate -->
+    <div class="activity-card" style="grid-column: span 2;">
+      <div class="card-label"><span class="live-dot"></span>Live Heart Rate</div>
+      <div style="display:flex; align-items:baseline; gap:12px">
+        <div class="card-value" style="color:var(--flesh); font-size:40px">72</div>
+        <div style="font-size:13px; opacity:0.4; font-family:'Space Mono'">bpm · Zone 2</div>
+      </div>
+      <div class="hr-line">
+        <svg class="hr-svg" viewBox="0 0 400 60" preserveAspectRatio="none">
+          <polyline
+            points="0,30 20,30 30,30 40,15 50,45 60,10 70,50 80,30 100,30 120,30 140,28 150,14 160,46 170,8 180,52 190,30 210,30 230,30 250,27 260,13 270,47 280,9 290,51 300,30 320,30 340,30 360,28 370,12 380,48 390,30 400,30"
+            fill="none"
+            stroke="#FF4D6D"
+            stroke-width="1.5"
+            opacity="0.7"
+          />
+          <polyline
+            points="380,30 390,15 395,45 400,30"
+            fill="none"
+            stroke="#FF4D6D"
+            stroke-width="1.5"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workout log -->
+  <div class="workout-log">
+    <div class="section-eyebrow" style="margin-bottom:24px">Recent Sessions</div>
+    <div class="log-row">
+      <div class="log-icon">🏃</div>
+      <div>
+        <div class="log-name">Morning Run</div>
+        <div class="log-date">TODAY · 06:42</div>
+      </div>
+      <div class="log-val">8.4 km<small>Distance</small></div>
+      <div class="log-val">46:20<small>Duration</small></div>
+      <div class="log-badge done">DONE</div>
+    </div>
+    <div class="log-row">
+      <div class="log-icon">🏋️</div>
+      <div>
+        <div class="log-name">Upper Body Lift</div>
+        <div class="log-date">YESTERDAY · 18:15</div>
+      </div>
+      <div class="log-val">5,200 kg<small>Total volume</small></div>
+      <div class="log-val">1:12:00<small>Duration</small></div>
+      <div class="log-badge hard">INTENSE</div>
+    </div>
+    <div class="log-row">
+      <div class="log-icon">🧘</div>
+      <div>
+        <div class="log-name">Recovery Yoga</div>
+        <div class="log-date">MON · 07:00</div>
+      </div>
+      <div class="log-val">—<small>Load</small></div>
+      <div class="log-val">30:00<small>Duration</small></div>
+      <div class="log-badge rest">REST</div>
+    </div>
+    <div class="log-row">
+      <div class="log-icon">🚴</div>
+      <div>
+        <div class="log-name">Indoor Cycling</div>
+        <div class="log-date">SUN · 17:30</div>
+      </div>
+      <div class="log-val">38.2 km<small>Distance</small></div>
+      <div class="log-val">58:40<small>Duration</small></div>
+      <div class="log-badge done">DONE</div>
+    </div>
+  </div>
+</section>
+
+<!-- GOALS -->
+<section class="goals-section">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">Active Goals</div>
+      <div class="section-title">Progress this<br>month</div>
+    </div>
+    <a href="#" class="view-all">ALL GOALS →</a>
+  </div>
+
+  <div class="goals-grid">
+    <!-- Goal 1 -->
+    <div class="goal-card">
+      <div class="goal-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" stroke="rgba(255,255,255,0.06)" stroke-width="3" fill="none"/>
+          <circle cx="40" cy="40" r="34" stroke="#00FF88" stroke-width="3" fill="none"
+            stroke-dasharray="213.6" stroke-dashoffset="53.4" stroke-linecap="round"/>
+        </svg>
+        <div class="pct" style="color:var(--pulse)">75%</div>
+      </div>
+      <div class="goal-title">Run 100 km</div>
+      <div class="goal-desc">75 km completed · 25 km remaining this month</div>
+      <div class="goal-streak">
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot missed"></div>
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot empty"></div>
+        <div class="streak-dot empty"></div>
+        <div class="streak-dot empty"></div>
+      </div>
+    </div>
+
+    <!-- Goal 2 -->
+    <div class="goal-card">
+      <div class="goal-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" stroke="rgba(255,255,255,0.06)" stroke-width="3" fill="none"/>
+          <circle cx="40" cy="40" r="34" stroke="#FF4D6D" stroke-width="3" fill="none"
+            stroke-dasharray="213.6" stroke-dashoffset="106.8" stroke-linecap="round"/>
+        </svg>
+        <div class="pct" style="color:var(--flesh)">50%</div>
+      </div>
+      <div class="goal-title">Lose 5 kg</div>
+      <div class="goal-desc">2.5 kg lost · On track with calorie deficit</div>
+      <div class="goal-streak">
+        <div class="streak-dot filled" style="background:var(--flesh)"></div>
+        <div class="streak-dot filled" style="background:var(--flesh)"></div>
+        <div class="streak-dot filled" style="background:var(--flesh)"></div>
+        <div class="streak-dot filled" style="background:var(--flesh)"></div>
+        <div class="streak-dot filled" style="background:var(--flesh)"></div>
+        <div class="streak-dot empty"></div>
+        <div class="streak-dot empty"></div>
+        <div class="streak-dot empty"></div>
+        <div class="streak-dot empty"></div>
+        <div class="streak-dot empty"></div>
+      </div>
+    </div>
+
+    <!-- Goal 3 -->
+    <div class="goal-card">
+      <div class="goal-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" stroke="rgba(255,255,255,0.06)" stroke-width="3" fill="none"/>
+          <circle cx="40" cy="40" r="34" stroke="#00FF88" stroke-width="3" fill="none"
+            stroke-dasharray="213.6" stroke-dashoffset="21.36" stroke-linecap="round"/>
+        </svg>
+        <div class="pct" style="color:var(--pulse)">90%</div>
+      </div>
+      <div class="goal-title">Sleep 7h+</div>
+      <div class="goal-desc">Averaging 7.2h · 3 nights under target this month</div>
+      <div class="goal-streak">
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot missed"></div>
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot filled"></div>
+        <div class="streak-dot filled"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div>
+    <div class="cta-title">Your data.<br>Your edge.</div>
+    <div class="cta-sub">Connect your wearable and get a complete biometric picture in under 60 seconds.</div>
+  </div>
+  <button class="btn-primary" style="white-space:nowrap; flex-shrink:0">CONNECT WEARABLE</button>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2026 VITALS BIOMETRIC TRACKER</span>
+  <span>REAL-TIME · PRECISE · YOURS</span>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = (mx - 4) + 'px';
+    cursor.style.top = (my - 4) + 'px';
+    ring.style.left = (mx - 16) + 'px';
+    ring.style.top = (my - 16) + 'px';
+  });
+
+  document.querySelectorAll('button, a').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      ring.style.width = '48px';
+      ring.style.height = '48px';
+      ring.style.marginLeft = '-8px';
+      ring.style.marginTop = '-8px';
+      ring.style.borderColor = 'rgba(0,255,136,0.8)';
+    });
+    el.addEventListener('mouseleave', () => {
+      ring.style.width = '32px';
+      ring.style.height = '32px';
+      ring.style.marginLeft = '0';
+      ring.style.marginTop = '0';
+      ring.style.borderColor = 'rgba(0,255,136,0.4)';
+    });
+  });
+
+  // Animate heart rate on scroll
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.prog-bar-fill').forEach(bar => {
+          const w = bar.style.width;
+          bar.style.width = '0';
+          setTimeout(() => bar.style.width = w, 100);
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.activity-card').forEach(c => observer.observe(c));
+
+  // Live heartbeat number jitter
+  const hrValue = document.querySelector('.activity-card .card-value[style*="flesh"]');
+  if (hrValue) {
+    setInterval(() => {
+      const base = 72;
+      const jitter = Math.round((Math.random() - 0.5) * 4);
+      hrValue.textContent = (base + jitter);
+    }, 1200);
+  }
+</script>
+</body>
+</html>
